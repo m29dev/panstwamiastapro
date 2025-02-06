@@ -1,0 +1,185 @@
+/* General Layout */
+.app-container {
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    background: #0c1424;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #fff; /* Light text color */
+    overflow: hidden;
+}
+
+/* Header Section */
+.header {
+    /* background-color: #9e74e3; Warm lavender color */
+    border-radius: 25px;
+    color: white;
+    padding: 25px;
+    /* box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); Soft shadow */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Subtle text shadow for warmth */
+    animation: fadeIn 1.5s ease-out;
+}
+
+.description {
+    font-size: 1.3rem;
+    margin-top: 10px;
+    font-weight: 300;
+    line-height: 1.5;
+}
+
+.cta-btn {
+    max-width: 300px;
+    margin: auto;
+    margin-top: 20px;
+    margin-bottom: 0px;
+
+    padding: 15px;
+    font-size: 1.2rem;
+    border: 2px solid #a6a7b9; /* Soft border color */
+    border-radius: 30px; /* Round input box */
+    width: 300px;
+    /* background-color: #444c56; Darker background for input */
+    background: #0f192e;
+
+    color: #fff; /* Light text */
+    transition: all 0.3s ease-in-out;
+    font-weight: 300;
+
+    cursor: pointer;
+
+    font-size: 1.1rem;
+    transition: all 0.4s ease-out;
+
+    animation: buttonPop 0.6s ease-out; /* Gentle pop animation */
+}
+
+.cta-btn:hover {
+    /* background-color: #f08080; Slightly darker pink on hover */
+    border: 2px solid#ffb6c1; /* Soft border color */
+    color: #ffb6c1;
+    transform: translateY(-4px); /* Button lift effect */
+    /* box-shadow: 0 8px 20px rgba(255, 182, 193, 0.8); Stronger glow on hover */
+}
+
+@keyframes buttonPop {
+    0% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Main Game Board */
+.game-board {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+    gap: 40px;
+    animation: fadeIn 2s ease-out;
+}
+
+.player-section {
+    margin-bottom: 20px;
+}
+
+.score {
+    color: #ffb6c1; /* Soft pink for scores */
+    font-weight: bold;
+    font-size: 1.6rem;
+}
+
+.randomLetter {
+    color: #ffb6c1;
+    font-size: 100px;
+}
+
+.categories {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.categories ul {
+    list-style-type: none;
+    padding: 0;
+    cursor: pointer;
+}
+
+.categories li {
+    font-size: 1.5rem;
+    color: #a6a7b9; /* Soft light gray for category names */
+    margin: 10px 0;
+    transition: color 0.3s ease-in-out;
+}
+
+.categories li:hover {
+    color: #ffb6c1; /* Soft pink on hover */
+}
+
+.input-section {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.answer-input {
+    padding: 15px;
+    font-size: 1.2rem;
+    border: 2px solid #a6a7b9; /* Soft border color */
+    border-radius: 30px; /* Round input box */
+    width: 300px;
+    /* background-color: #444c56; Darker background for input */
+    background-color: #0f192e;
+
+    color: #fff; /* Light text */
+    transition: all 0.3s ease-in-out;
+    /* box-shadow: 0 4px 10px rgba(166, 167, 185, 0.4); Soft glow effect */
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.answer-input:focus {
+    outline: none;
+    border-color: #ffb6c1; /* Soft pink border on focus */
+    /* box-shadow: 0 6px 14px rgba(255, 182, 193, 0.6); Focus glow effect */
+}
+
+/* Footer */
+.footer {
+    /* background-color: #9e74e3; Soft lavender for footer */
+    color: white;
+    padding: 15px;
+    font-size: 1rem;
+    border-radius: 25px;
+    animation: fadeIn 2s ease-out;
+}
+
+.rules-link {
+    color: #a6a7b9;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.rules-link:hover {
+    color: #ffb6c1; /* Soft pink on hover */
+}
+
+/* Fade-in animation for smooth transitions */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

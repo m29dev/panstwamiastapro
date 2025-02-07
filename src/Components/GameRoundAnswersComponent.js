@@ -56,8 +56,8 @@ const GameRoundAnswersComponent = () => {
                                         >
                                             {player.roundAnswers.celebrity
                                                 .status
-                                                ? '1'
-                                                : '0'}
+                                                ? 'true'
+                                                : 'false'}
                                         </button>
                                     )}
                                 </li>
@@ -72,8 +72,8 @@ const GameRoundAnswersComponent = () => {
                                             } // Wywołanie funkcji przy kliknięciu
                                         >
                                             {player.roundAnswers.city.status
-                                                ? '1'
-                                                : '0'}
+                                                ? 'true'
+                                                : 'false'}
                                         </button>
                                     )}
                                 </li>
@@ -91,8 +91,8 @@ const GameRoundAnswersComponent = () => {
                                             } // Wywołanie funkcji przy kliknięciu
                                         >
                                             {player.roundAnswers.country.status
-                                                ? '1'
-                                                : '0'}
+                                                ? 'true'
+                                                : 'false'}
                                         </button>
                                     )}
                                 </li>
@@ -107,8 +107,8 @@ const GameRoundAnswersComponent = () => {
                                             } // Wywołanie funkcji przy kliknięciu
                                         >
                                             {player.roundAnswers.thing.status
-                                                ? '1'
-                                                : '0'}
+                                                ? 'true'
+                                                : 'false'}
                                         </button>
                                     )}
                                 </li>

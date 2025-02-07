@@ -3,7 +3,8 @@ import './GameComponent.css'
 import { onValue, ref, update } from 'firebase/database'
 import { db } from '../firebaseConfig'
 import { useParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { getGameInfo } from '../Services/localStorageService'
 // import TimerComponent from './TimerComponent'
 
 const GameComponent = () => {
@@ -16,20 +17,57 @@ const GameComponent = () => {
     const { user } = useSelector((state) => state.user)
 
     useEffect(() => {
-        if (game?.roundSendAnswers) {
-            console.log(20, answerCountry)
-        }
-    }, [game])
+        const roomRef = ref(db, `rooms/${roomId}/players/${user.id}`)
+
+        onValue(roomRef, async (snapshot) => {
+            if (snapshot.exists()) {
+                const roundAnswers = JSON?.parse(
+                    localStorage?.getItem('answersInfo')
+                )
+
+                await update(roomRef, {
+                    roundSendAnswers: false,
+                    roundAnswers,
+                })
+            } else {
+                console.log('no data on this user update')
+            }
+        })
+    }, [])
 
     const handleStopRound = async () => {
         try {
             const roomRef = ref(db, `rooms/${roomId}`)
-            await update(roomRef, { roundStart: false, roundSendAnswers: true })
+            const gameInfoObject = structuredClone(game)
+
+            const playersArray = Object.entries(game?.players)
+
+            playersArray?.map(([id, player]) => {
+                return (gameInfoObject.players[id].roundSendAnswers = true)
+            })
+
+            await update(roomRef, {
+                roundStart: false,
+                players: gameInfoObject.players,
+            })
         } catch (error) {
             console.error('Error fetching game:', error)
             return null
         }
     }
+
+    useEffect(() => {
+        console.log('NEW ANS')
+
+        const ansObject = {
+            country: { string: answerCountry, status: true },
+            city: { string: answerCapital, status: true },
+            thing: { string: answerThing, status: true },
+            celebrity: { string: answerCelebrity, status: true },
+        }
+
+        localStorage.setItem('answersInfo', JSON.stringify(ansObject))
+    }, [answerCountry, answerCapital, answerThing, answerCelebrity])
 
     return (
         <main className="game-board">

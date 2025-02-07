@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { setGame } from '../Redux/gameSlice'
 import { radndomizeLetter } from '../Services/randomizeLetterService'
+import GameRoundAnswersComponent from '../Components/GameRoundAnswersComponent'
 
 const GamePage = () => {
     const { roomId } = useParams()
@@ -19,6 +20,7 @@ const GamePage = () => {
 
             const roomRef = ref(db, `rooms/${roomId}`)
             await update(roomRef, {
+                round: +game.round + 1,
                 roundStart: true,
                 roundLetter: letter,
                 roundSendAnswers: false,
@@ -59,10 +61,6 @@ const GamePage = () => {
         onValue(roomRef, (snapshot) => {
             if (snapshot.exists()) {
                 dispatch(setGame(snapshot.val()))
-
-                if (snapshot.val()?.roundSendAnswers) {
-                    console.log('on send answers init')
-                }
             } else {
                 console.log('Room does not exist.')
             }
@@ -81,7 +79,7 @@ const GamePage = () => {
                 </div>
             )}
 
-            {!game?.roundStart && (
+            {!game?.roundStart && game.round === 0 && (
                 <>
                     <GameLobbyComponent />
 
@@ -92,6 +90,19 @@ const GamePage = () => {
                     )}
                 </>
             )}
+
+            {!game?.roundStart && game.round > 0 && (
+                <>
+                    <GameRoundAnswersComponent />
+
+                    {user?.id === game?.host && (
+                        <div className={'cta-btn'} onClick={handleGameStart}>
+                            Next Round
+                        </div>
+                    )}
+                </>
+            )}
+
             {game?.roundStart && <GameComponent />}
 
             <footer className="footer">

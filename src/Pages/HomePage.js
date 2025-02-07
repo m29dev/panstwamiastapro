@@ -34,21 +34,23 @@ const HomePage = () => {
         try {
             const dbRef = ref(db)
             const snapshot = await get(child(dbRef, `rooms/${room}`))
+
             if (snapshot.exists()) {
-                const varRoom = snapshot.val()
-
                 // Check if players array exists, initialize if not
-                const players = [...varRoom?.players]
+                const playerObject = { email: user?.email, roundAnswers: {} }
 
-                // Add the new player if they’re not already in the array
-                if (!players.some((item) => item.id === user?.id)) {
-                    players.push({ id: user?.id, email: user?.email })
-                    // Update the room's players in Firebase
-                    const roomRef = ref(db, `rooms/${room}`)
-                    await update(roomRef, { players })
-                } else {
-                    console.log('Player already in room.')
-                }
+                // // Add the new player if they’re not already in the array
+                // if (!players.some((item) => item.id === user?.id)) {
+
+                // } else {
+                //     console.log('Player already in room.')
+                // }
+
+                // Update the room's players in Firebase
+                const roomRef = ref(db, `rooms/${room}`)
+                await update(roomRef, {
+                    [`players/${user.id}`]: playerObject, // Dynamicznie dodajemy gracza z ID
+                })
 
                 return navigate(`/game/${room}`)
             } else {
@@ -73,7 +75,9 @@ const HomePage = () => {
                 round: 0,
                 roundStart: false,
                 roundTimer: 0,
-                players: [{ id: user?.id, email: user?.email }],
+                players: {
+                    [user.id]: { email: user?.email, roundAnswers: {} },
+                },
                 createdAt: Date.now(),
             })
 

@@ -36,20 +36,22 @@ const HomePage = () => {
             const snapshot = await get(child(dbRef, `rooms/${room}`))
 
             if (snapshot.exists()) {
-                // Check if players array exists, initialize if not
                 const playerObject = { email: user?.email, roundAnswers: {} }
+                const playersIdInfo = snapshot?.val()?.playersIdArray
+                const playersIdArrayEdit = structuredClone(playersIdInfo)
 
-                // // Add the new player if they’re not already in the array
-                // if (!players.some((item) => item.id === user?.id)) {
-
-                // } else {
-                //     console.log('Player already in room.')
-                // }
+                // Add the new player if they’re not already in the array
+                if (!playersIdInfo.some((item) => item.id === user?.id)) {
+                    playersIdArrayEdit.push(user.id)
+                } else {
+                    console.log('Player already in room.')
+                }
 
                 // Update the room's players in Firebase
                 const roomRef = ref(db, `rooms/${room}`)
                 await update(roomRef, {
-                    [`players/${user.id}`]: playerObject, // Dynamicznie dodajemy gracza z ID
+                    [`players/${user.id}`]: playerObject,
+                    playersIdArray: playersIdArrayEdit,
                 })
 
                 return navigate(`/game/${room}`)
@@ -75,6 +77,7 @@ const HomePage = () => {
                 round: 0,
                 roundStart: false,
                 roundTimer: 0,
+                playersIdArray: [user.id],
                 players: {
                     [user.id]: { email: user?.email, roundAnswers: {} },
                 },

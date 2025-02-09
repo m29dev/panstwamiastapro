@@ -17,15 +17,21 @@ const GameComponent = () => {
     const { user } = useSelector((state) => state.user)
 
     useEffect(() => {
-        const roomRef = ref(db, `rooms/${roomId}/players/${user.id}`)
+        const roomRef = ref(
+            db,
+            `rooms/${roomId}/players/${user.id}/roundSendAnswers`
+        )
+        const roomRefSave = ref(db, `rooms/${roomId}/players/${user.id}`)
 
         onValue(roomRef, async (snapshot) => {
             if (snapshot.exists()) {
+                console.log('onRoundSendAnswers')
+
                 const roundAnswers = JSON?.parse(
                     localStorage?.getItem('answersInfo')
                 )
 
-                await update(roomRef, {
+                await update(roomRefSave, {
                     roundSendAnswers: false,
                     roundAnswers,
                 })

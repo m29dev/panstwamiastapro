@@ -17,13 +17,20 @@ const GamePage = () => {
     const handleGameStart = async () => {
         try {
             const letter = radndomizeLetter()
+            const playersEdit = structuredClone(game.players)
 
             const roomRef = ref(db, `rooms/${roomId}`)
+
+            game.playersIdArray.forEach((playerId) => {
+                playersEdit[playerId].roundSendAnswers = false
+            })
+
             await update(roomRef, {
                 round: +game.round + 1,
                 roundStart: true,
                 roundLetter: letter,
                 roundSendAnswers: false,
+                players: playersEdit,
             })
         } catch (error) {
             console.error('Error fetching game:', error)
@@ -60,6 +67,7 @@ const GamePage = () => {
 
         onValue(roomRef, (snapshot) => {
             if (snapshot.exists()) {
+                // console.log(snapshot.val().players)
                 dispatch(setGame(snapshot.val()))
             } else {
                 console.log('Room does not exist.')
@@ -79,7 +87,7 @@ const GamePage = () => {
                 </div>
             )}
 
-            {!game?.roundStart && game.round === 0 && (
+            {!game?.roundStart && game?.round === 0 && (
                 <>
                     <GameLobbyComponent />
 
@@ -91,7 +99,7 @@ const GamePage = () => {
                 </>
             )}
 
-            {!game?.roundStart && game.round > 0 && (
+            {!game?.roundStart && game?.round > 0 && (
                 <>
                     <GameRoundAnswersComponent />
 

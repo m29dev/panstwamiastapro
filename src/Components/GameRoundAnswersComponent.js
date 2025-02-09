@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { db, ref } from '../firebaseConfig'
 import { useParams } from 'react-router-dom'
@@ -11,8 +11,6 @@ const GameRoundAnswersComponent = () => {
 
     const playersArray = Object.entries(game.players)
 
-    // const [playersArray, setPlayerArray] = useState([])
-
     const handleToggleAnswer = async (id, atr) => {
         console.log('handleToggleAnswer: ', id, atr)
         const roomRef = ref(
@@ -22,101 +20,371 @@ const GameRoundAnswersComponent = () => {
 
         const status = !game.players[id].roundAnswers[atr].status
 
-        await update(roomRef, {
+        const res = await update(roomRef, {
             status,
         })
+
+        console.log(res)
     }
 
-    // useEffect(() => {
-    //     const array = Object.entries(game.players)
-    //     setPlayerArray(array)
-    // }, [game])
+    const handlePoints = async () => {
+        const categories = ['celebrity', 'city', 'country', 'thing']
+        const playersArrayToCopy = Object.values(game?.players) //array
+        const playersArray = structuredClone(playersArrayToCopy) //copy array
+
+        const players = structuredClone(game?.players)
+        const playersIdArray = game?.playersIdArray
+
+        // console.log(playersIdArray)
+
+        playersIdArray.forEach((playerId) => {
+            const playerObject = players[playerId]
+            // console.log(playerObject)
+            let playerPoints = 0
+
+            categories.forEach((category) => {
+                const search = playerObject?.roundAnswers[category]?.string
+                const status = playerObject?.roundAnswers[category]?.status
+
+                // console.log(search, status)
+
+                // if answer is empty or status is false 0 points
+                if (search === '' || !status) {
+                    playerObject.roundAnswers[category].points = 0
+                    return console.log(playerObject.email, category, '0 points')
+                }
+
+                // filter for 15 points
+                const filteredPlayers15 = playersArray.filter(
+                    (player) =>
+                        player.email !== playerObject.email &&
+                        ((player.roundAnswers[category]?.status === true &&
+                            player.roundAnswers[category]?.string === '') ||
+                            player.roundAnswers[category]?.status === false)
+                )
+                if (
+                    filteredPlayers15.length ===
+                    game.playersIdArray.length - 1
+                ) {
+                    playerPoints += 15
+                    playerObject.roundAnswers[category].points = 15
+                    return console.log(
+                        playerObject.email,
+                        category,
+                        '15 points'
+                    )
+                }
+
+                const filteredPlayers10 = playersArray.filter(
+                    (player) =>
+                        player.email !== playerObject.email &&
+                        player.roundAnswers[category]?.status === true &&
+                        player.roundAnswers[category]?.string !== search
+                )
+                if (filteredPlayers10.length > 0) {
+                    playerPoints += 10
+                    playerObject.roundAnswers[category].points = 10
+                    return console.log(
+                        playerObject.email,
+                        category,
+                        '10 points'
+                    )
+                }
+
+                const filteredPlayers5 = playersArray.filter(
+                    (player) =>
+                        player.email !== playerObject.email &&
+                        player.roundAnswers[category]?.status === true &&
+                        player.roundAnswers[category]?.string === search
+                )
+                if (filteredPlayers5.length > 0) {
+                    playerPoints += 5
+                    playerObject.roundAnswers[category].points = 5
+                    return console.log(playerObject.email, category, '5 points')
+                }
+            })
+
+            playerObject.roundAnswers.roundPoints = playerPoints
+            playerObject.gamePoints = playerObject.gamePoints
+                ? playerObject.gamePoints + playerPoints
+                : playerPoints
+        })
+
+        console.log(players)
+
+        const roomRef = ref(db, `rooms/${roomId}`)
+        await update(roomRef, {
+            players,
+        })
+    }
 
     return (
         <div style={styles.container}>
             <h2 style={styles.title}>Odpowiedzi graczy - Runda</h2>
-            <ul style={styles.playerList}>
+
+            <div style={styles.playerList}>
                 {playersArray.map(([id, player]) => (
-                    <li key={id} style={styles.playerItem}>
-                        <div>
-                            <p style={styles.playerEmail}>{player.email}</p>
-                            <ul style={styles.answerList}>
-                                <li style={styles.answerItem}>
-                                    <strong>Celebrity:</strong>{' '}
-                                    {player.roundAnswers.celebrity.string}
+                    <div key={id} style={styles.playerItem}>
+                        <p style={styles.playerEmail}>{player.email}</p>
+                        <p style={styles.playerEmail}>
+                            Round points: {player?.roundAnswers?.roundPoints}
+                        </p>
+                        <div style={styles.answerList}>
+                            {/* country */}
+                            <div style={styles.answerItemContainer}>
+                                <div style={styles.answerItem}>
+                                    <div style={styles.answerName}>PAŃSTWO</div>
+
+                                    <div style={styles.answerItem}>
+                                        {player?.roundAnswers?.country?.string}
+                                    </div>
+                                </div>
+
+                                <div style={styles.answerItem}>
+                                    {/* host */}
                                     {user?.id === game?.host && (
-                                        <button
-                                            style={styles.button}
-                                            onClick={() =>
-                                                handleToggleAnswer(
-                                                    id,
-                                                    'celebrity'
-                                                )
-                                            } // Wywołanie funkcji przy kliknięciu
-                                        >
-                                            {player.roundAnswers.celebrity
-                                                .status
-                                                ? 'true'
-                                                : 'false'}
-                                        </button>
-                                    )}
-                                </li>
-                                <li style={styles.answerItem}>
-                                    <strong>City:</strong>{' '}
-                                    {player.roundAnswers.city.string}
-                                    {user?.id === game?.host && (
-                                        <button
-                                            style={styles.button}
-                                            onClick={() =>
-                                                handleToggleAnswer(id, 'city')
-                                            } // Wywołanie funkcji przy kliknięciu
-                                        >
-                                            {player.roundAnswers.city.status
-                                                ? 'true'
-                                                : 'false'}
-                                        </button>
-                                    )}
-                                </li>
-                                <li style={styles.answerItem}>
-                                    <strong>Country:</strong>{' '}
-                                    {player.roundAnswers.country.string}
-                                    {user?.id === game?.host && (
-                                        <button
-                                            style={styles.button}
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.country
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.country
+                                                    ?.status
+                                                    ? styles.icon_true
+                                                    : styles.icon_false
+                                            }
+                                            alt="Dynamiczny obrazek"
                                             onClick={() =>
                                                 handleToggleAnswer(
                                                     id,
                                                     'country'
                                                 )
-                                            } // Wywołanie funkcji przy kliknięciu
-                                        >
-                                            {player.roundAnswers.country.status
-                                                ? 'true'
-                                                : 'false'}
-                                        </button>
+                                            }
+                                        />
                                     )}
-                                </li>
-                                <li style={styles.answerItem}>
-                                    <strong>Thing:</strong>{' '}
-                                    {player.roundAnswers.thing.string}
+
+                                    {/* player */}
+                                    {user?.id !== game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.country
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.country
+                                                    ?.status
+                                                    ? styles.icon_player_true
+                                                    : styles.icon_player_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                        />
+                                    )}
+
+                                    <div>
+                                        {player?.roundAnswers?.country?.points}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* city */}
+                            <div style={styles.answerItemContainer}>
+                                <div style={styles.answerItem}>
+                                    <div style={styles.answerName}>MIASTO</div>
+
+                                    <div style={styles.answerItem}>
+                                        {player?.roundAnswers?.city?.string}
+                                    </div>
+                                </div>
+
+                                <div style={styles.answerItem}>
+                                    {/* host */}
                                     {user?.id === game?.host && (
-                                        <button
-                                            style={styles.button}
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.city
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.city
+                                                    ?.status
+                                                    ? styles.icon_true
+                                                    : styles.icon_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                            onClick={() =>
+                                                handleToggleAnswer(id, 'city')
+                                            }
+                                        />
+                                    )}
+
+                                    {/* player */}
+                                    {user?.id !== game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.city
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.city
+                                                    ?.status
+                                                    ? styles.icon_player_true
+                                                    : styles.icon_player_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                        />
+                                    )}
+
+                                    <div>
+                                        {player?.roundAnswers?.city?.points}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* celebrity */}
+                            <div style={styles.answerItemContainer}>
+                                <div style={styles.answerItem}>
+                                    <div style={styles.answerName}>
+                                        CELEBRYTA
+                                    </div>
+
+                                    <div style={styles.answerItem}>
+                                        {
+                                            player?.roundAnswers?.celebrity
+                                                ?.string
+                                        }
+                                    </div>
+                                </div>
+
+                                <div style={styles.answerItem}>
+                                    {/* host */}
+                                    {user?.id === game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.celebrity
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.celebrity
+                                                    ?.status
+                                                    ? styles.icon_true
+                                                    : styles.icon_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                            onClick={() =>
+                                                handleToggleAnswer(
+                                                    id,
+                                                    'celebrity'
+                                                )
+                                            }
+                                        />
+                                    )}
+
+                                    {/* player */}
+                                    {user?.id !== game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.celebrity
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.celebrity
+                                                    ?.status
+                                                    ? styles.icon_player_true
+                                                    : styles.icon_player_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                        />
+                                    )}
+
+                                    <div>
+                                        {
+                                            player?.roundAnswers?.celebrity
+                                                ?.points
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* thing */}
+                            <div style={styles.answerItemContainer}>
+                                <div style={styles.answerItem}>
+                                    <div style={styles.answerName}>
+                                        PRZEDMIOT
+                                    </div>
+
+                                    <div style={styles.answerItem}>
+                                        {player?.roundAnswers?.thing?.string}
+                                    </div>
+                                </div>
+
+                                <div style={styles.answerItem}>
+                                    {/* host */}
+                                    {user?.id === game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.thing
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.thing
+                                                    ?.status
+                                                    ? styles.icon_true
+                                                    : styles.icon_false
+                                            }
+                                            alt="Dynamiczny obrazek"
                                             onClick={() =>
                                                 handleToggleAnswer(id, 'thing')
-                                            } // Wywołanie funkcji przy kliknięciu
-                                        >
-                                            {player.roundAnswers.thing.status
-                                                ? 'true'
-                                                : 'false'}
-                                        </button>
+                                            }
+                                        />
                                     )}
-                                </li>
-                            </ul>
+
+                                    {/* player */}
+                                    {user?.id !== game?.host && (
+                                        <img
+                                            src={`/icon_${
+                                                player?.roundAnswers?.thing
+                                                    ?.status
+                                                    ? 'true'
+                                                    : 'false'
+                                            }.png`}
+                                            style={
+                                                player?.roundAnswers?.thing
+                                                    ?.status
+                                                    ? styles.icon_player_true
+                                                    : styles.icon_player_false
+                                            }
+                                            alt="Dynamiczny obrazek"
+                                        />
+                                    )}
+
+                                    <div>
+                                        {player?.roundAnswers?.thing?.points}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </li>
+                    </div>
                 ))}
-            </ul>
+
+                <div className="cta-btn" onClick={handlePoints}>
+                    Calculate points
+                </div>
+            </div>
         </div>
     )
 }
@@ -125,7 +393,7 @@ const GameRoundAnswersComponent = () => {
 const styles = {
     container: {
         fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#f8f8f8',
+        // backgroundColor: '#f8f8f8',
         padding: '30px',
         borderRadius: '10px',
         maxWidth: '800px',
@@ -141,15 +409,50 @@ const styles = {
         textTransform: 'uppercase',
         letterSpacing: '2px',
     },
+    icon_true: {
+        width: '30px',
+        height: '30px',
+        cursor: 'pointer',
+        backgroundColor: 'green',
+        borderRadius: '50%',
+    },
+    icon_false: {
+        width: '30px',
+        height: '30px',
+        cursor: 'pointer',
+        backgroundColor: 'red',
+        borderRadius: '50%',
+    },
+    icon_player_true: {
+        width: '30px',
+        height: '30px',
+        backgroundColor: 'green',
+        borderRadius: '50%',
+    },
+    icon_player_false: {
+        width: '30px',
+        height: '30px',
+        backgroundColor: 'red',
+        borderRadius: '50%',
+    },
+
+    answerItemContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '10px',
+    },
+
     playerList: {
         listStyleType: 'none',
         paddingLeft: '0',
     },
     playerItem: {
-        backgroundColor: '#fff',
-        padding: '20px',
+        // backgroundColor: '#fff',
+        // padding: '20px',
         marginBottom: '15px',
-        borderRadius: '10px',
+        borderRadius: '21px',
         border: '2px solid #ddd',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         position: 'relative',
@@ -161,16 +464,22 @@ const styles = {
         marginBottom: '10px',
     },
     answerList: {
-        marginTop: '15px',
-        paddingLeft: '20px',
+        padding: '20px',
     },
     answerItem: {
         fontSize: '16px',
         marginBottom: '10px',
-        color: '#34495e',
+        margin: '0px',
+        display: 'flex',
+        // color: '#34495e',
     },
+    answerName: {
+        width: '200px',
+        textAlign: 'start',
+    },
+
     button: {
-        backgroundColor: '#3498db',
+        // backgroundColor: '#3498db',
         color: '#fff',
         border: 'none',
         padding: '10px 20px',

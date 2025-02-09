@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import GameComponent from '../Components/GameComponent'
 import GameLobbyComponent from '../Components/GameLobbyComponent'
+import ResultsComponent from '../Components/ResultsComponent'
 import { child, get, onValue, ref, update } from 'firebase/database'
 import { db } from '../firebaseConfig'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -18,12 +19,21 @@ const GamePage = () => {
         try {
             const letter = radndomizeLetter()
             const playersEdit = structuredClone(game.players)
-
             const roomRef = ref(db, `rooms/${roomId}`)
-
             game.playersIdArray.forEach((playerId) => {
                 playersEdit[playerId].roundSendAnswers = false
             })
+
+            if (game.round >= 3) {
+                await update(roomRef, {
+                    
+                    roundStart: false,
+                    roundSendAnswers: false,
+                    players: playersEdit,
+                    displayResults: true,
+                })
+                return
+            }
 
             await update(roomRef, {
                 round: +game.round + 1,
@@ -81,7 +91,7 @@ const GamePage = () => {
                 <h1>Państwa Miasta</h1>
             </header>
 
-            {!game && (
+            {!game && !game.displayResults && (
                 <div className={'cta-btn'} onClick={() => navigate('/')}>
                     Back to lobby
                 </div>
@@ -99,19 +109,39 @@ const GamePage = () => {
                 </>
             )}
 
-            {!game?.roundStart && game?.round > 0 && (
+            {!game?.roundStart &&
+                game?.round > 0 &&
+                game?.round < 3 &&
+                !game.displayResults && (
+                    <>
+                        <GameRoundAnswersComponent />
+
+                        {user?.id === game?.host && (
+                            <div
+                                className={'cta-btn'}
+                                onClick={handleGameStart}
+                            >
+                                Next Round
+                            </div>
+                        )}
+                    </>
+                )}
+
+            {!game?.roundStart && game?.round >= 3 && !game.displayResults && (
                 <>
                     <GameRoundAnswersComponent />
 
                     {user?.id === game?.host && (
                         <div className={'cta-btn'} onClick={handleGameStart}>
-                            Next Round
+                            Display game results
                         </div>
                     )}
                 </>
             )}
 
-            {game?.roundStart && <GameComponent />}
+            {game?.roundStart && !game.displayResults && <GameComponent />}
+
+            {!game?.roundStart && game.displayResults && <ResultsComponent />}
 
             <footer className="footer">
                 <p>&copy; 2025 Państwa Miasta</p>
